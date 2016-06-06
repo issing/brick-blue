@@ -378,6 +378,7 @@ public interface Marks {
      * 
      */
     public static final class TYPE {
+
         private static final Map<String, TYPE> TYPES;
 
         // 原始数据类型
@@ -399,6 +400,8 @@ public interface Marks {
         public static final TYPE SYSTEM;
         public static final TYPE PRINTSTREAM;
         public static final TYPE CLASS;
+
+        public static final String REGEX_METH;
 
         public final int sort;
 
@@ -430,6 +433,8 @@ public interface Marks {
             CLASS = new TYPE(1, "java.lang.Class");
 
             TYPES.put(null, VOID);
+
+            REGEX_METH = "[(].*[)].+";
         }
 
         private TYPE(int sort) {
