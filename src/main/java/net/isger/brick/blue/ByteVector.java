@@ -6,7 +6,7 @@ package net.isger.brick.blue;
  * @author issing
  * 
  */
-public class ByteVector {
+class ByteVector {
 
     private static final int DEF_CAPACITY = 64;
 

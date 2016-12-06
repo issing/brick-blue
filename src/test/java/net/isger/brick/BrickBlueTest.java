@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import net.isger.brick.blue.ClassSeal;
 import net.isger.brick.blue.Marks.ACCESS;
+import net.isger.brick.blue.Marks.MISC;
 import net.isger.brick.blue.Marks.OPCODES;
 import net.isger.brick.blue.Marks.TYPE;
 import net.isger.brick.blue.Marks.VERSION;
@@ -51,17 +52,17 @@ public class BrickBlueTest extends TestCase {
                 "Example", TYPE.OBJECT.name);
         {
             // public Example()
-            ms = cs.makeMethod(ACCESS.PUBLIC.value, "void", "<init>");
+            ms = cs.makeMethod(ACCESS.PUBLIC.value, TYPE.VOID.name, MISC.INIT);
             {
                 // super();
-                ms.coding("this", "super()");
+                ms.coding(MISC.THIS, MISC.METH_SUPER);
                 // System.out.println("greeting");
                 ms.markConst("greeting", "This is blue of isger(init).");
-                ms.coding("out", "println(obj)", "greeting");
+                ms.coding(MISC.OUT, MISC.METH_PRINTLN, "greeting");
             }
             // public static void main(String[])
             ms = cs.makeMethod(ACCESS.PUBLIC.value | ACCESS.STATIC.value,
-                    "void", "main", "java.lang.String[]");
+                    TYPE.VOID.name, "main", TYPE.STRINGS.name);
             {
                 // ms.markOperate("println(int)", TYPE.PRINTSTREAM.name,
                 // OPCODES.INVOKEVIRTUAL.value, "void", "println",
@@ -71,16 +72,16 @@ public class BrickBlueTest extends TestCase {
 
                 // System.out.println(new Example());
                 ms.markOperate("Example()", "Example",
-                        OPCODES.INVOKESPECIAL.value, "void", "<init>");
-                ms.markCoding("new Example()", "new", "Example()");
-                ms.coding("out", "println(obj)", "new Example()");
+                        OPCODES.INVOKESPECIAL.value, TYPE.VOID.name, MISC.INIT);
+                ms.markCoding("new Example()", MISC.NEW, "Example()");
+                ms.coding(MISC.OUT, MISC.METH_PRINTLN, "new Example()");
 
                 // Example e = new Example();
-                String e = ms.coding("new", "Example()");
+                String e = ms.coding(MISC.NEW, "Example()");
                 // System.out.println(e);
-                ms.coding("out", "println(obj)", e);
+                ms.coding(MISC.OUT, MISC.METH_PRINTLN, e);
                 // System.out.println(Example.class);
-                ms.coding("out", "println(obj)", "class");
+                ms.coding(MISC.OUT, MISC.METH_PRINTLN, MISC.CLASS);
             }
 
         }

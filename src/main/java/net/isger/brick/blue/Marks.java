@@ -661,6 +661,8 @@ public interface Marks {
      */
     public static class MISC {
 
+        public static final String CLASS = "class";
+
         public static final String THIS = "this";
 
         public static final String NEW = "new";

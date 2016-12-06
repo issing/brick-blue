@@ -5,6 +5,8 @@ import net.isger.brick.blue.MethodSeal;
 
 public class ClassQuiet extends ClassSeal {
 
+    private static final String CLASS = "class$";
+
     public ClassQuiet(int version, int access, String name, String superName,
             String[] interfaces) {
         super(version, access, name, superName, interfaces);
@@ -14,7 +16,7 @@ public class ClassQuiet extends ClassSeal {
     private void makeClassMethod() {
         // static Class class$(String name)
         MethodSeal ms = super.makeMethod(ACCESS.STATIC.value, TYPE.CLASS.name,
-                "class$", TYPE.STRING.name);
+                CLASS, TYPE.STRING.name);
         {
             // return Class.forName(name);
             // 低版本获取类型实例方法声明
@@ -39,8 +41,8 @@ public class ClassQuiet extends ClassSeal {
         if (result) {
             // 为方法添加类型变量
             String owner = ms.getOwner();
-            ms.markOperate("class", owner, OPCODES.INVOKESTATIC.value,
-                    TYPE.CLASS.name, "class$", TYPE.STRING.name);
+            ms.markOperate(MISC.CLASS, owner, OPCODES.INVOKESTATIC.value,
+                    TYPE.CLASS.name, CLASS, TYPE.STRING.name);
         }
         return result;
     }

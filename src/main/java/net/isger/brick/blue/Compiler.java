@@ -15,20 +15,19 @@ public class Compiler implements Marks {
 
     public static final String ATTR_METH_CODE = "Code";
 
-    private Compiler c;
+    protected final Compiler compiler;
 
-    private ClassSeal classSeal;
+    protected final ClassSeal classSeal;
 
-    private ConstPool pool;
+    protected final ConstPool pool;
 
-    private ByteVector out;
+    protected final ByteVector out;
 
-    private Compiler(ClassSeal classSeal) {
-        this.c = this;
+    protected Compiler(ClassSeal classSeal) {
+        this.compiler = this;
         this.classSeal = classSeal;
         this.pool = new ConstPool();
         this.out = new ByteVector();
-        this.compile();
     }
 
     /**
@@ -38,7 +37,9 @@ public class Compiler implements Marks {
      * @return
      */
     public static byte[] compile(ClassSeal classSeal) {
-        return new Compiler(classSeal).out.toArray();
+        Compiler compiler = new Compiler(classSeal);
+        compiler.compile();
+        return compiler.out.toArray();
     }
 
     /**
@@ -46,15 +47,15 @@ public class Compiler implements Marks {
      * 
      * @return
      */
-    private void compile() {
-        // 输出魔数及版本号
+    protected void compile() {
+        /* 输出魔数及版本号 */
         this.out.putInt(MAGIC).putInt(classSeal.getVersion());
-        ByteVector mainData = compileMain();
-        // 输出常量池
+        ByteVector classData = compileClass();
+        /* 输出常量池 */
         byte[] poolData = pool.toArray();
         this.out.putShort(pool.count()).put(poolData, 0, poolData.length);
-        // 输出类主体
-        this.out.put(mainData);
+        /* 输出类主体 */
+        this.out.put(classData);
     }
 
     /**
@@ -62,16 +63,16 @@ public class Compiler implements Marks {
      * 
      * @return
      */
-    private ByteVector compileMain() {
+    protected ByteVector compileClass() {
         ByteVector out = new ByteVector();
-        // 输出类定义
+        /* 输出类定义 */
         out.putShort(classSeal.getAccess());
         out.putShort(pool.takeClass(TYPE.getDesc(classSeal.getName())));
         String superName = classSeal.getSuperName();
         out.putShort(superName == null ? 0 : pool.takeClass(TYPE
                 .getDesc(superName)));
-        String[] interfaces = classSeal.getInterfaces();
-        out.putShort(interfaces.length);
+        List<String> interfaces = classSeal.getInterfaces();
+        out.putShort(interfaces.size());
         for (String interfaceName : interfaces) {
             out.putShort(pool.takeClass(TYPE.getDesc(interfaceName)));
         }
@@ -122,7 +123,7 @@ public class Compiler implements Marks {
         out.putShort(pool.takeUTF8(method.getName()));
         out.putShort(pool.takeUTF8(TYPE.getMethDesc(method.getType(),
                 method.getArgTypes())));
-        // TODO 输出方法所有属性
+        // TODO 输出方法所有属性（当前只输出代码块）
         out.putShort(1);
         // 输出方法代码块
         out.putShort(pool.takeUTF8(ATTR_METH_CODE));
@@ -253,7 +254,7 @@ public class Compiler implements Marks {
              */
             private void compile() {
                 String owner = codeSeal.getOwner();
-                Keyword keyword = Keyword.get(owner, c, mc, cc);
+                Keyword keyword = Keyword.get(owner, compiler, mc, cc);
                 if (keyword != null) {
                     keyword.compile();
                 } else if (owner == null || this.compileArg(owner)) {
