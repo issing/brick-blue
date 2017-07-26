@@ -69,8 +69,8 @@ public class Compiler implements Marks {
         out.putShort(classSeal.getAccess());
         out.putShort(pool.takeClass(TYPE.getDesc(classSeal.getName())));
         String superName = classSeal.getSuperName();
-        out.putShort(superName == null ? 0 : pool.takeClass(TYPE
-                .getDesc(superName)));
+        out.putShort(superName == null ? 0
+                : pool.takeClass(TYPE.getDesc(superName)));
         List<String> interfaces = classSeal.getInterfaces();
         out.putShort(interfaces.size());
         for (String interfaceName : interfaces) {
@@ -121,8 +121,8 @@ public class Compiler implements Marks {
         // 输出方法定义
         out.putShort(method.getAccess());
         out.putShort(pool.takeUTF8(method.getName()));
-        out.putShort(pool.takeUTF8(TYPE.getMethDesc(method.getType(),
-                method.getArgTypes())));
+        out.putShort(pool.takeUTF8(
+                TYPE.getMethDesc(method.getType(), method.getArgTypes())));
         // TODO 输出方法所有属性（当前只输出代码块）
         out.putShort(1);
         // 输出方法代码块
@@ -218,7 +218,15 @@ public class Compiler implements Marks {
 
         private ByteVector compileResult(String type) {
             ByteVector out = new ByteVector();
+            TYPE resultType = TYPE.getType(methodSeal.getType());
             // TODO 自动返回（默认类型转换）
+            if (TYPE.getType(type) != resultType) {
+                if (resultType.isPrimitive()) {
+                    // TODO 原始数据类型处理
+                }
+                out.put12(OPCODES.CHECKCAST.value,
+                        compiler.pool.takeConst(resultType));
+            }
             out.putByte(OPCODES.getReturn(methodSeal.getType()));
             return out;
         }
@@ -261,7 +269,8 @@ public class Compiler implements Marks {
                     this.compileArgs();
                     this.compileOperate();
                 } else {
-                    throw new RuntimeException("Invalid coding owner: " + owner);
+                    throw new RuntimeException(
+                            "Invalid coding owner: " + owner);
                 }
             }
 
@@ -274,8 +283,8 @@ public class Compiler implements Marks {
                 int size = args.length;
                 for (int i = 0; i < size; i++) {
                     if (!compileArg(args[i])) {
-                        throw new RuntimeException("Invalid coding arg: "
-                                + args[i]);
+                        throw new RuntimeException(
+                                "Invalid coding arg: " + args[i]);
                     }
                 }
             }
@@ -287,18 +296,20 @@ public class Compiler implements Marks {
              * @return
              */
             private boolean compileArg(String arg) {
+                // TODO 堆栈分配不紧凑
                 Object oarg = null;
                 Object[] varg = null;
                 FieldSeal farg = null;
                 CodeSeal carg = null;
-                if ((oarg = methodSeal.getConstMark(arg)) != null) {
+                if (MISC.NULL.equals(arg)) {
+                    out.putByte(OPCODES.ACONST_NULL.value);
+                } else if ((oarg = methodSeal.getConstMark(arg)) != null) {
                     compileConst(oarg);
                 } else if ((varg = vs.get(arg)) != null) {
                     compileVariable((Integer) varg[0],
                             OPCODES.getLoad((String) varg[1]));
-                } else if ((farg = methodSeal.getReferMark(arg)) != null) {
-                    compileField(farg);
-                } else if ((farg = classSeal.getField(arg)) != null) {
+                } else if ((farg = methodSeal.getReferMark(arg)) != null
+                        || (farg = classSeal.getField(arg)) != null) {
                     compileField(farg);
                 } else if ((carg = methodSeal.getCodingMark(arg)) != null) {
                     CodeCompile cc = new CodeCompile(carg);
@@ -353,13 +364,12 @@ public class Compiler implements Marks {
                 if (OPCODES.isInterface(opcode)) {
                     String desc = TYPE.getMethDesc(type, operate.getArgTypes());
                     out.putShort(pool.takeMethod(true,
-                            TYPE.getDesc(operate.getOwner()),
-                            operate.getName(), desc));
+                            TYPE.getDesc(operate.getOwner()), operate.getName(),
+                            desc));
                     out.put11(TYPE.getDescSize(desc) >> 2, 0);
                 } else {
                     out.putShort(pool.takeMethod(false,
-                            TYPE.getDesc(operate.getOwner()),
-                            operate.getName(),
+                            TYPE.getDesc(operate.getOwner()), operate.getName(),
                             TYPE.getMethDesc(type, operate.getArgTypes())));
                 }
             }
@@ -404,8 +414,9 @@ public class Compiler implements Marks {
                             OPCODES.INVOKESPECIAL.value, TYPE.VOID.name,
                             MISC.INIT);
                 } else if (MISC.RETURN.equals(codeSeal.getOwner())) {
-                    operate = new MethodSeal(null, OPCODES.getReturn(methodSeal
-                            .getType()), null, null, methodSeal.getType());
+                    operate = new MethodSeal(null,
+                            OPCODES.getReturn(methodSeal.getType()), null, null,
+                            methodSeal.getType());
                 } else if (MISC.ARRAY.equals(codeSeal.getOwner())) {
                     if (operateName.equals(MISC.LENGTH)) {
                         operate = new MethodSeal(null,
@@ -451,8 +462,8 @@ public class Compiler implements Marks {
             keywords.put(MISC.NEW, new Keyword() {
                 public void compile() {
                     cc.out.putByte(OPCODES.NEW.value);
-                    cc.out.putShort(c.pool.takeClass(TYPE.getDesc(cc
-                            .getOperate().getOwner())));
+                    cc.out.putShort(c.pool.takeClass(
+                            TYPE.getDesc(cc.getOperate().getOwner())));
                     cc.out.putByte(OPCODES.DUP.value);
                     cc.stacks += 2;
                     super.compile();
@@ -470,17 +481,30 @@ public class Compiler implements Marks {
             });
             keywords.put(MISC.ARRAY, new Keyword() {
                 public void compile() {
-                    int i = 0;
                     String operate = cc.codeSeal.getOperate();
+                    /* 数组长度 */
+                    if (MISC.LENGTH.equals(operate)) {
+                        cc.out.putByte(OPCODES.ARRAYLENGTH.value);
+                        cc.type = TYPE.INT.name;
+                        return;
+                    }
+                    /* 新增数组 */
                     if (operate.matches(MISC.RGX_NEWARRAY)) {
-                        operate = operate.substring(1, operate.length() - 1);
-                        if (operate.length() == 0) {
-                            cc.compileConst(cc.codeSeal.getArgs().length - 1);
+                        String[] args = cc.codeSeal.getArgs();
+                        int index = operate.lastIndexOf('[');
+                        TYPE type = TYPE.getType(operate.substring(0, index));
+                        operate = operate.substring(index + 1,
+                                operate.indexOf(']', index));
+                        int size = operate.length() == 0 ? args.length
+                                : Integer.parseInt(operate);
+                        if (size <= 5) {
+                            cc.out.putByte(OPCODES.ICONST_0.value + size);
+                        } else if (size < 256) {
+                            cc.out.put11(OPCODES.BIPUSH.value, size);
                         } else {
-                            cc.compileConst(Integer.valueOf(operate));
+                            throw new RuntimeException("the index " + size
+                                    + " out of the current array support range 0-255 bounds");
                         }
-                        TYPE type = (TYPE) mc.methodSeal
-                                .getConstMark(cc.codeSeal.getArgs()[0]);
                         if (type.isPrimitive()) {
                             cc.out.put11(OPCODES.NEWARRAY.value, type.sort);
                         } else {
@@ -488,20 +512,43 @@ public class Compiler implements Marks {
                                     c.pool.takeConst(type));
                         }
                         cc.stacks++;
-                        i++;
-                    }
-                    String[] args = cc.codeSeal.getArgs();
-                    int size = args.length;
-                    while (i < size) {
-                        if (cc.compileArg(args[i++])) {
-                            continue;
+                        int i = 0;
+                        if (size > 0) {
+                            cc.stacks += 2;
+                            while (i < size) {
+                                cc.out.putByte(OPCODES.DUP.value);
+                                if (i <= 5) {
+                                    cc.out.putByte(OPCODES.ICONST_0.value + i);
+                                } else if (i < 256) {
+                                    cc.out.put11(OPCODES.BIPUSH.value, i);
+                                } else {
+                                    throw new RuntimeException("the index " + i
+                                            + " out of the current array support range 0-255 bounds");
+                                }
+                                if (cc.compileArg(args[i++])) {
+                                    cc.out.putByte(OPCODES.AASTORE.value);
+                                    continue;
+                                }
+                                throw new RuntimeException(
+                                        "Invalid coding arg: " + args[--i]);
+                            }
                         }
-                        throw new RuntimeException("Invalid coding arg: "
-                                + args[--i]);
+                        return;
                     }
-                    if (MISC.LENGTH.equals(operate)) {
-                        cc.out.putByte(OPCODES.ARRAYLENGTH.value);
-                        cc.type = TYPE.INT.name;
+                    /* 获取数组 */
+                    if (operate.matches(MISC.RGX_GETARRAY)) {
+                        cc.compileArg(cc.codeSeal.getArgs()[0]);
+                        int index = Integer.valueOf(operate);
+                        if (index <= 5) {
+                            cc.out.putByte(OPCODES.ICONST_0.value + index);
+                        } else if (index < 256) {
+                            cc.out.put11(OPCODES.BIPUSH.value, index);
+                        } else {
+                            throw new RuntimeException("the index " + index
+                                    + " out of the current array support range 0-255 bounds");
+                        }
+                        cc.out.putByte(OPCODES.AALOAD.value);
+                        cc.stacks++;
                     }
                 }
             });
@@ -680,15 +727,7 @@ public class Compiler implements Marks {
             } else if (value instanceof String) {
                 return takeString((String) value);
             } else if (value instanceof TYPE) {
-                TYPE type = (TYPE) value;
-                int sort = type.sort;
-                if (sort == TYPE.OBJECT.sort) {
-                    return takeClass(type.getDesc());
-                    // } else if (sort == TYPE.METHOD.sort) {
-                    // return takeMethodType(type.getDesc());
-                } else { // sort == primitive type or array
-                    return takeClass(type.getDesc());
-                }
+                return takeClass(((TYPE) value).getDesc());
             } else {
                 throw new IllegalArgumentException("value " + value);
             }
@@ -755,7 +794,8 @@ public class Compiler implements Marks {
          */
         public int takeDouble(double value) {
             this.key.type = CONST.DOUBLE;
-            this.key.values = new Object[] { Double.doubleToRawLongBits(value) };
+            this.key.values = new Object[] {
+                    Double.doubleToRawLongBits(value) };
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.putByte(key.type.value).putLong((Long) this.key.values[0]);
@@ -837,7 +877,8 @@ public class Compiler implements Marks {
                 if (result) {
                     ConstKey key = (ConstKey) instance;
                     int length = this.values.length;
-                    if (result = (this.type == key.type && length == key.values.length)) {
+                    if (result = (this.type == key.type
+                            && length == key.values.length)) {
                         for (int i = 0; i < length; i++) {
                             if (!this.values[i].equals(key.values[i])) {
                                 result = false;

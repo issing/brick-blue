@@ -80,6 +80,11 @@ public class MethodSeal {
                 name, argTypes));
     }
 
+    public void markCoding(String alias, String refer, Object operate,
+            String... args) {
+        this.markCoding(alias, refer, String.valueOf(operate), args);
+    }
+
     public void markCoding(String alias, String refer, String operate,
             String... args) {
         this.codingMarks.put(alias, new CodeSeal(refer, operate, args));

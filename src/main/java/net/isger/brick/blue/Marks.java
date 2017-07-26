@@ -50,8 +50,8 @@ public interface Marks {
          */
         public static int filter(int value) {
             // JDK 版本检查
-            if (V0101.value == value || value >= V0102.value
-                    && value <= V0107.value) {
+            if (V0101.value == value
+                    || value >= V0102.value && value <= V0107.value) {
                 return value;
             }
             if (LOG.isDebugEnabled()) {
@@ -68,8 +68,8 @@ public interface Marks {
          */
         public static boolean isOriginal(int value) {
             // JDK 1.4及以下为原始版本
-            return V0101.value == value || value >= V0102.value
-                    && value <= V0104.value;
+            return V0101.value == value
+                    || value >= V0102.value && value <= V0104.value;
         }
 
     }
@@ -246,7 +246,8 @@ public interface Marks {
             // 操作检查
             if (access < GETSTATIC.value || access > PUTFIELD.value) {
                 log.error("invalid operate: {}", access);
-                throw new IllegalArgumentException("invalid operate: " + access);
+                throw new IllegalArgumentException(
+                        "invalid operate: " + access);
             }
             return access;
         }
@@ -261,7 +262,8 @@ public interface Marks {
             // 操作检查
             if (access < INVOKEVIRTUAL.value || access > INVOKEDYNAMIC.value) {
                 log.error("invalid operate: {}", access);
-                throw new IllegalArgumentException("invalid operate: " + access);
+                throw new IllegalArgumentException(
+                        "invalid operate: " + access);
             }
             return access;
         }
@@ -333,7 +335,15 @@ public interface Marks {
          * @return
          */
         public static int getReturn(String type) {
-            return getReturn(TYPE.getType(type).sort);
+            TYPE returnType = TYPE.getType(type);
+            if (returnType.isPrimitive()) {
+                try {
+                    Class.forName(type);
+                    returnType = TYPE.OBJECT;
+                } catch (ClassNotFoundException e) {
+                }
+            }
+            return getReturn(returnType.sort);
         }
 
         /**
@@ -393,13 +403,16 @@ public interface Marks {
         public static final TYPE DOUBLE;
 
         // 引用数据类型
-        public static final TYPE ARRAY;
         public static final TYPE OBJECT;
+        public static final TYPE OBJECTS;
         public static final TYPE STRINGS;
         public static final TYPE STRING;
         public static final TYPE SYSTEM;
         public static final TYPE PRINTSTREAM;
         public static final TYPE CLASS;
+        public static final TYPE CLASSES;
+        public static final TYPE METHOD;
+        public static final TYPE METHODS;
 
         public static final String REGEX_METH;
 
@@ -425,12 +438,15 @@ public interface Marks {
             DOUBLE = new TYPE(7, "double", "D", "java.lang.Double");
 
             OBJECT = new TYPE(1, "java.lang.Object");
-            ARRAY = new TYPE(2, "java.lang.Object[]");
+            OBJECTS = new TYPE(2, "java.lang.Object[]");
             STRING = new TYPE(1, "java.lang.String");
             STRINGS = new TYPE(2, "java.lang.String[]");
             SYSTEM = new TYPE(1, "java.lang.System");
             PRINTSTREAM = new TYPE(1, "java.io.PrintStream");
             CLASS = new TYPE(1, "java.lang.Class");
+            CLASSES = new TYPE(2, "java.lang.Class[]");
+            METHOD = new TYPE(1, "java.lang.reflect.Method");
+            METHODS = new TYPE(2, "java.lang.reflect.Method[]");
 
             TYPES.put(null, VOID);
 
@@ -584,10 +600,9 @@ public interface Marks {
                 c = desc.charAt(index++);
                 if (c == ')') {
                     c = desc.charAt(index);
-                    return amount << 2
-                            | (c == VOID.desc.charAt(0) ? 0 : (c == DOUBLE.desc
-                                    .charAt(0) || c == LONG.desc.charAt(0) ? 2
-                                    : 1));
+                    return amount << 2 | (c == VOID.desc.charAt(0) ? 0
+                            : (c == DOUBLE.desc.charAt(0)
+                                    || c == LONG.desc.charAt(0) ? 2 : 1));
                 } else if (c == 'L') {
                     while (desc.charAt(index++) != ';') {
                     }
@@ -596,7 +611,8 @@ public interface Marks {
                     while ((c = desc.charAt(index)) == '[') {
                         ++index;
                     }
-                    if (c == DOUBLE.desc.charAt(0) || c == LONG.desc.charAt(0)) {
+                    if (c == DOUBLE.desc.charAt(0)
+                            || c == LONG.desc.charAt(0)) {
                         amount -= 1;
                     }
                 } else if (c == DOUBLE.desc.charAt(0)
@@ -619,7 +635,7 @@ public interface Marks {
             TYPE type = TYPES.get(typeName);
             if (type == null) {
                 if (typeName.endsWith("[]")) {
-                    type = new TYPE(ARRAY.sort, typeName);
+                    type = new TYPE(OBJECTS.sort, typeName);
                 } else {
                     type = new TYPE(OBJECT.sort, typeName);
                 }
@@ -628,7 +644,7 @@ public interface Marks {
         }
 
         /**
-         * 制造描述信息
+         * 生成描述信息
          * 
          * @param buffer
          * @param typeName
@@ -663,6 +679,10 @@ public interface Marks {
 
         public static final String CLASS = "class";
 
+        public static final String METHOD = "method";
+
+        public static final String NULL = "null";
+
         public static final String THIS = "this";
 
         public static final String NEW = "new";
@@ -671,7 +691,9 @@ public interface Marks {
 
         public static final String LENGTH = "length";
 
-        public static final String RGX_NEWARRAY = "\\[\\d*\\]";
+        public static final String RGX_NEWARRAY = "\\w+([.]\\w+)*\\[\\d*\\]";
+
+        public static final String RGX_GETARRAY = "\\d+";
 
         public static final String RETURN = "return";
 

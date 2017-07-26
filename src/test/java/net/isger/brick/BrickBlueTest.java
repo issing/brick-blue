@@ -1,6 +1,8 @@
 package net.isger.brick;
 
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -43,7 +45,66 @@ public class BrickBlueTest extends TestCase {
 
     }
 
-    public void testExample() throws Exception {
+    public static interface TestC {
+
+        /**
+         * 注册终端
+         * 
+         * @param terminal
+         * @return
+         */
+        public Object register(Object terminal);
+
+        /**
+         * 绑定终端
+         * 
+         * @param userTerminal
+         * @return
+         */
+        public Object bind(Object userTerminal);
+
+        /**
+         * 终端
+         *
+         * @param terminal
+         * @return
+         */
+        public Object terminal(Object terminal);
+
+        /**
+         * 用户终端
+         * 
+         * @param userTerminal
+         * @return
+         */
+        public Map<String, Object> userTerminal(Object userTerminal);
+
+        /**
+         * 用户终端
+         * 
+         * @param userTerminal
+         * @return
+         */
+        public List<Map<String, Object>> userTerminals(Object userTerminal);
+
+        /**
+         * 变更状态
+         * 
+         * @param terminal
+         * @return
+         */
+        public Object status(Object terminal);
+
+        /**
+         * 解绑终端
+         * 
+         * @param userTerminal
+         */
+        public Object unbind(Object userTerminal);
+
+    }
+
+    public void _testExample() throws Exception {
         Class<?> exampleClass = null;
         ClassSeal cs = null;
         MethodSeal ms = null;
@@ -93,15 +154,15 @@ public class BrickBlueTest extends TestCase {
         methods[0].invoke(null, new Object[] { new String[] {} });
     }
 
-    public void testBlue() throws Exception {
+    public void _testBlue() throws Exception {
         // public class Blue
         ClassSeal cs = ClassSeal.create(VERSION.V0104.value,
                 ACCESS.PUBLIC.value, "Blue", TYPE.OBJECT.name,
                 TestA.class.getName());
         {
             // public Blue()
-            MethodSeal ms = cs
-                    .makeMethod(ACCESS.PUBLIC.value, "void", "<init>");
+            MethodSeal ms = cs.makeMethod(ACCESS.PUBLIC.value, "void",
+                    "<init>");
             {
                 // super();
                 ms.coding("this", "super()");
@@ -114,7 +175,8 @@ public class BrickBlueTest extends TestCase {
                 ms.coding("return", null, "id");
             }
             // public String getName()
-            ms = cs.makeMethod(ACCESS.PUBLIC.value, TYPE.STRING.name, "getName");
+            ms = cs.makeMethod(ACCESS.PUBLIC.value, TYPE.STRING.name,
+                    "getName");
             {
                 // return "Blue";
                 ms.markConst("name", "Blue");
@@ -129,12 +191,12 @@ public class BrickBlueTest extends TestCase {
         System.out.println(instance.getId());
         System.out.println(instance.getName());
 
-        cs = ClassSeal.create(VERSION.V0104.value, ACCESS.PUBLIC.value,
-                "BlueB", TestB.class.getName());
+        cs = ClassSeal.create(VERSION.V0104.value, ACCESS.PUBLIC.value, "BlueB",
+                TestB.class.getName());
         {
             // public BlueB()
-            MethodSeal ms = cs
-                    .makeMethod(ACCESS.PUBLIC.value, "void", "<init>");
+            MethodSeal ms = cs.makeMethod(ACCESS.PUBLIC.value, "void",
+                    "<init>");
             {
                 // super();
                 ms.coding("this", "super()");
@@ -147,7 +209,8 @@ public class BrickBlueTest extends TestCase {
                 ms.coding("return", null, "id");
             }
             // public String getName()
-            ms = cs.makeMethod(ACCESS.PUBLIC.value, TYPE.STRING.name, "getName");
+            ms = cs.makeMethod(ACCESS.PUBLIC.value, TYPE.STRING.name,
+                    "getName");
             {
                 // return super.getName();
                 ms.markOperate("getName()", TestB.class.getName(),
