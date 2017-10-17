@@ -104,7 +104,7 @@ public class BrickBlueTest extends TestCase {
 
     }
 
-    public void _testExample() throws Exception {
+    public void testExample() throws Exception {
         Class<?> exampleClass = null;
         ClassSeal cs = null;
         MethodSeal ms = null;
@@ -154,7 +154,7 @@ public class BrickBlueTest extends TestCase {
         methods[0].invoke(null, new Object[] { new String[] {} });
     }
 
-    public void _testBlue() throws Exception {
+    public void testBlue() throws Exception {
         // public class Blue
         ClassSeal cs = ClassSeal.create(VERSION.V0104.value,
                 ACCESS.PUBLIC.value, "Blue", TYPE.OBJECT.name,
