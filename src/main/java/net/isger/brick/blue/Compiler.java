@@ -220,9 +220,13 @@ public class Compiler implements Marks {
             ByteVector out = new ByteVector();
             TYPE resultType = TYPE.getType(methodSeal.getType());
             // TODO 自动返回（默认类型转换）
-            if (TYPE.getType(type) != resultType) {
+            cast: if (TYPE.getType(type) != resultType) {
                 if (resultType.isPrimitive()) {
                     // TODO 原始数据类型处理
+                    if (resultType == TYPE.VOID) {
+                        out.putByte(OPCODES.POP.value);
+                        break cast;
+                    }
                 }
                 out.put12(OPCODES.CHECKCAST.value,
                         compiler.pool.takeConst(resultType));
