@@ -33,8 +33,7 @@ public interface Marks {
 
         V0107(0 << 16 | 51);
 
-        private static final Logger LOG = LoggerFactory
-                .getLogger(VERSION.class);
+        private static final Logger LOG = LoggerFactory.getLogger(VERSION.class);
 
         public final int value;
 
@@ -50,8 +49,7 @@ public interface Marks {
          */
         public static int filter(int value) {
             // JDK 版本检查
-            if (V0101.value == value
-                    || value >= V0102.value && value <= V0107.value) {
+            if (V0101.value == value || value >= V0102.value && value <= V0107.value) {
                 return value;
             }
             if (LOG.isDebugEnabled()) {
@@ -68,8 +66,7 @@ public interface Marks {
          */
         public static boolean isOriginal(int value) {
             // JDK 1.4及以下为原始版本
-            return V0101.value == value
-                    || value >= V0102.value && value <= V0104.value;
+            return V0101.value == value || value >= V0102.value && value <= V0104.value;
         }
 
     }
@@ -246,8 +243,7 @@ public interface Marks {
             // 操作检查
             if (access < GETSTATIC.value || access > PUTFIELD.value) {
                 log.error("invalid operate: {}", access);
-                throw new IllegalArgumentException(
-                        "invalid operate: " + access);
+                throw new IllegalArgumentException("invalid operate: " + access);
             }
             return access;
         }
@@ -262,8 +258,7 @@ public interface Marks {
             // 操作检查
             if (access < INVOKEVIRTUAL.value || access > INVOKEDYNAMIC.value) {
                 log.error("invalid operate: {}", access);
-                throw new IllegalArgumentException(
-                        "invalid operate: " + access);
+                throw new IllegalArgumentException("invalid operate: " + access);
             }
             return access;
         }
@@ -364,9 +359,7 @@ public interface Marks {
          * @return
          */
         private static int getOpcode(int sort, int opcode) {
-            if (sort == TYPE.BOOLEAN.sort || sort == TYPE.CHAR.sort
-                    || sort == TYPE.BYTE.sort || sort == TYPE.SHORT.sort
-                    || sort == TYPE.INT.sort) {
+            if (sort == TYPE.BOOLEAN.sort || sort == TYPE.CHAR.sort || sort == TYPE.BYTE.sort || sort == TYPE.SHORT.sort || sort == TYPE.INT.sort) {
                 opcode -= 4;
             } else if (sort == TYPE.LONG.sort) {
                 opcode -= 3;
@@ -526,8 +519,7 @@ public interface Marks {
          * @return
          */
         public static boolean isPrimitive(int sort) {
-            return sort >= BOOLEAN.sort && sort <= LONG.sort
-                    || sort == VOID.sort;
+            return sort >= BOOLEAN.sort && sort <= LONG.sort || sort == VOID.sort;
         }
 
         /**
@@ -560,8 +552,7 @@ public interface Marks {
          * @param argTypeNames
          * @return
          */
-        public static String getMethDesc(String typeName,
-                String... argTypeNames) {
+        public static String getMethDesc(String typeName, String... argTypeNames) {
             StringBuffer desc = new StringBuffer(128);
             desc.append('(');
             for (String argTypeName : argTypeNames) {
@@ -571,8 +562,7 @@ public interface Marks {
             return desc.toString();
         }
 
-        public static String getMethDesc(Class<?> resultType,
-                Class<?>... argTypes) {
+        public static String getMethDesc(Class<?> resultType, Class<?>... argTypes) {
             return getMethDesc(resultType.getName(), getArgTypeNames(argTypes));
         }
 
@@ -600,9 +590,7 @@ public interface Marks {
                 c = desc.charAt(index++);
                 if (c == ')') {
                     c = desc.charAt(index);
-                    return amount << 2 | (c == VOID.desc.charAt(0) ? 0
-                            : (c == DOUBLE.desc.charAt(0)
-                                    || c == LONG.desc.charAt(0) ? 2 : 1));
+                    return amount << 2 | (c == VOID.desc.charAt(0) ? 0 : (c == DOUBLE.desc.charAt(0) || c == LONG.desc.charAt(0) ? 2 : 1));
                 } else if (c == 'L') {
                     while (desc.charAt(index++) != ';') {
                     }
@@ -611,12 +599,10 @@ public interface Marks {
                     while ((c = desc.charAt(index)) == '[') {
                         ++index;
                     }
-                    if (c == DOUBLE.desc.charAt(0)
-                            || c == LONG.desc.charAt(0)) {
+                    if (c == DOUBLE.desc.charAt(0) || c == LONG.desc.charAt(0)) {
                         amount -= 1;
                     }
-                } else if (c == DOUBLE.desc.charAt(0)
-                        || c == LONG.desc.charAt(0)) {
+                } else if (c == DOUBLE.desc.charAt(0) || c == LONG.desc.charAt(0)) {
                     amount += 2;
                 } else {
                     amount += 1;
@@ -650,15 +636,12 @@ public interface Marks {
          * @param typeName
          * @param isDecor
          */
-        private static void makeDesc(StringBuffer buffer, String typeName,
-                boolean isDecor) {
+        private static void makeDesc(StringBuffer buffer, String typeName, boolean isDecor) {
             TYPE type = null;
             if (typeName.endsWith("[]")) {
                 buffer.append('[');
-                makeDesc(buffer, typeName.substring(0, typeName.length() - 2),
-                        true);
-            } else if ((type = TYPES.get(typeName)) != null
-                    && type.isPrimitive()) {
+                makeDesc(buffer, typeName.substring(0, typeName.length() - 2), true);
+            } else if ((type = TYPES.get(typeName)) != null && type.isPrimitive()) {
                 buffer.append(type.desc);
             } else if (isDecor) {
                 buffer.append('L').append(typeName).append(';');
