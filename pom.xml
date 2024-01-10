@@ -4,7 +4,7 @@
     <parent>
         <groupId>net.isger</groupId>
         <artifactId>brick-primary</artifactId>
-        <version>${brick.version}</version>
+        <version>0.0.3-SNAPSHOT</version>
     </parent>
     <artifactId>brick-blue</artifactId>
     <packaging>jar</packaging>
