@@ -7,9 +7,8 @@ import java.util.Map;
 
 /**
  * 蓝图编译器
- * 
+ *
  * @author issing
- * 
  */
 public class Compiler implements Marks {
 
@@ -32,7 +31,7 @@ public class Compiler implements Marks {
 
     /**
      * 编译字节码
-     * 
+     *
      * @param classSeal
      * @return
      */
@@ -44,7 +43,7 @@ public class Compiler implements Marks {
 
     /**
      * 编译入口
-     * 
+     *
      * @return
      */
     protected void compile() {
@@ -60,7 +59,7 @@ public class Compiler implements Marks {
 
     /**
      * 编译类主体
-     * 
+     *
      * @return
      */
     protected ByteVector compileClass() {
@@ -94,7 +93,7 @@ public class Compiler implements Marks {
 
     /**
      * 编译类字段
-     * 
+     *
      * @param field
      * @return
      */
@@ -111,7 +110,7 @@ public class Compiler implements Marks {
 
     /**
      * 编译方法
-     * 
+     *
      * @param method
      * @return
      */
@@ -132,9 +131,8 @@ public class Compiler implements Marks {
 
     /**
      * 方法代码编译
-     * 
+     *
      * @author issing
-     * 
      */
     private class MethodCompile {
 
@@ -148,7 +146,9 @@ public class Compiler implements Marks {
 
         private int locals;
 
-        /** 本地变量集合（元素数组组成：变量索引，变量类型） */
+        /**
+         * 本地变量集合（元素数组组成：变量索引，变量类型）
+         */
         private Map<String, Object[]> vs;
 
         public MethodCompile(MethodSeal methodSeal) {
@@ -171,7 +171,6 @@ public class Compiler implements Marks {
 
         /**
          * 编译入口
-         * 
          */
         private void compile() {
             // 输出代码主体
@@ -186,7 +185,7 @@ public class Compiler implements Marks {
 
         /**
          * 编译方法代码主体
-         * 
+         *
          * @return
          */
         private ByteVector compileMain() {
@@ -218,7 +217,8 @@ public class Compiler implements Marks {
             ByteVector out = new ByteVector();
             TYPE resultType = TYPE.getType(methodSeal.getType());
             // TODO 自动返回（默认类型转换）
-            cast: if (TYPE.getType(type) != resultType) {
+            cast:
+            if (TYPE.getType(type) != resultType) {
                 if (resultType.isPrimitive()) {
                     // TODO 原始数据类型处理
                     if (resultType == TYPE.VOID) {
@@ -234,9 +234,8 @@ public class Compiler implements Marks {
 
         /**
          * 执行码编译
-         * 
+         *
          * @author issing
-         * 
          */
         private class CodeCompile {
 
@@ -259,7 +258,6 @@ public class Compiler implements Marks {
 
             /**
              * 编译入口
-             * 
              */
             private void compile() {
                 String owner = codeSeal.getOwner();
@@ -276,7 +274,6 @@ public class Compiler implements Marks {
 
             /**
              * 编译所有参数
-             * 
              */
             private void compileArgs() {
                 String[] args = codeSeal.getArgs();
@@ -290,7 +287,7 @@ public class Compiler implements Marks {
 
             /**
              * 编译指定参数
-             * 
+             *
              * @param arg
              * @return
              */
@@ -559,9 +556,8 @@ public class Compiler implements Marks {
 
     /**
      * 常量池
-     * 
+     *
      * @author issing
-     * 
      */
     private static class ConstPool {
 
@@ -582,13 +578,13 @@ public class Compiler implements Marks {
 
         /**
          * 获取类
-         * 
+         *
          * @param name
          * @return
          */
         public int takeClass(String name) {
             this.key.type = CONST.CLASS;
-            this.key.values = new Object[] { name };
+            this.key.values = new Object[]{name};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.put12(CONST.CLASS.value, takeUTF8(name));
@@ -599,7 +595,7 @@ public class Compiler implements Marks {
 
         /**
          * 获取方法
-         * 
+         *
          * @param isInterface
          * @param owner
          * @param name
@@ -608,7 +604,7 @@ public class Compiler implements Marks {
          */
         public int takeMethod(boolean isInterface, String owner, String name, String desc) {
             this.key.type = isInterface ? CONST.IMETHOD : CONST.METHOD;
-            this.key.values = new Object[] { owner, name, desc };
+            this.key.values = new Object[]{owner, name, desc};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.put122(this.key.type.value, takeClass(owner), takeNameType(name, desc));
@@ -636,7 +632,7 @@ public class Compiler implements Marks {
 
         /**
          * 获取字段
-         * 
+         *
          * @param owner
          * @param name
          * @param desc
@@ -644,7 +640,7 @@ public class Compiler implements Marks {
          */
         public int takeField(String owner, String name, String desc) {
             this.key.type = CONST.FIELD;
-            this.key.values = new Object[] { owner, name, desc };
+            this.key.values = new Object[]{owner, name, desc};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.put122(key.type.value, takeClass(owner), takeNameType(name, desc));
@@ -655,14 +651,14 @@ public class Compiler implements Marks {
 
         /**
          * 获取名称类型
-         * 
+         *
          * @param name
          * @param desc
          * @return
          */
         public int takeNameType(String name, String desc) {
             this.key.type = CONST.NAMETYPE;
-            this.key.values = new Object[] { name, desc };
+            this.key.values = new Object[]{name, desc};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.put122(key.type.value, takeUTF8(name), takeUTF8(desc));
@@ -673,7 +669,7 @@ public class Compiler implements Marks {
 
         /**
          * 获取常量
-         * 
+         *
          * @param value
          * @return
          */
@@ -705,13 +701,13 @@ public class Compiler implements Marks {
 
         /**
          * 获取整数
-         * 
+         *
          * @param value
          * @return
          */
         public int takeInteger(int value) {
             this.key.type = CONST.INT;
-            this.key.values = new Object[] { value };
+            this.key.values = new Object[]{value};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.putByte(key.type.value).putInt(value);
@@ -722,13 +718,13 @@ public class Compiler implements Marks {
 
         /**
          * 获取浮点数
-         * 
+         *
          * @param value
          * @return
          */
         public int takeFloat(float value) {
             this.key.type = CONST.FLOAT;
-            this.key.values = new Object[] { Float.floatToRawIntBits(value) };
+            this.key.values = new Object[]{Float.floatToRawIntBits(value)};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.putByte(key.type.value).putInt((Integer) this.key.values[0]);
@@ -739,13 +735,13 @@ public class Compiler implements Marks {
 
         /**
          * 获取长整形
-         * 
+         *
          * @param value
          * @return
          */
         public int takeLong(long value) {
             this.key.type = CONST.LONG;
-            this.key.values = new Object[] { value };
+            this.key.values = new Object[]{value};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.putByte(key.type.value).putLong(value);
@@ -757,13 +753,13 @@ public class Compiler implements Marks {
 
         /**
          * 获取双精度数
-         * 
+         *
          * @param value
          * @return
          */
         public int takeDouble(double value) {
             this.key.type = CONST.DOUBLE;
-            this.key.values = new Object[] { Double.doubleToRawLongBits(value) };
+            this.key.values = new Object[]{Double.doubleToRawLongBits(value)};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.putByte(key.type.value).putLong((Long) this.key.values[0]);
@@ -775,13 +771,13 @@ public class Compiler implements Marks {
 
         /**
          * 获取字符串对象
-         * 
+         *
          * @param value
          * @return
          */
         public int takeString(String value) {
             this.key.type = CONST.STRING;
-            this.key.values = new Object[] { value };
+            this.key.values = new Object[]{value};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.put12(key.type.value, takeUTF8(value));
@@ -792,13 +788,13 @@ public class Compiler implements Marks {
 
         /**
          * 获取UTF8字符串描述
-         * 
+         *
          * @param value
          * @return
          */
         public int takeUTF8(String value) {
             this.key.type = CONST.UTF8;
-            this.key.values = new Object[] { value };
+            this.key.values = new Object[]{value};
             ConstKey key = this.index.take(this.key);
             if (key.index == 0) {
                 out.putByte(key.type.value).putUTF8(value);
@@ -809,7 +805,7 @@ public class Compiler implements Marks {
 
         /**
          * 获取常量总数
-         * 
+         *
          * @return
          */
         public int count() {
@@ -818,7 +814,7 @@ public class Compiler implements Marks {
 
         /**
          * 获取常量池数据
-         * 
+         *
          * @return
          */
         public byte[] toArray() {
@@ -827,9 +823,8 @@ public class Compiler implements Marks {
 
         /**
          * 常量键
-         * 
+         *
          * @author issing
-         * 
          */
         private static class ConstKey implements Cloneable {
 
@@ -871,9 +866,8 @@ public class Compiler implements Marks {
 
         /**
          * 常量索引
-         * 
+         *
          * @author issing
-         * 
          */
         private static class ConstIndex {
 
